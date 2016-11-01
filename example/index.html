@@ -1,0 +1,36 @@
+<html>
+	<head>
+		<script type="text/javascript" src="../srcs/irrequire.js"></script>
+	</head>
+	<body>
+		<table>
+		<tr><td>Direct callback</td><td id="direct-callback"></td></tr>
+		<tr><td>Object declared just after</td><td id="after-callback"></td></tr>
+		<tr><td>Object declared after 1s</td><td id="after1s-callback"></td></tr>
+		<tr><td>Multi objects</td><td id="multi-callback"></td></tr>
+		<tr><td>Trigger</td><td id="trigger-callback"></td></tr>
+		</table>
+		<script>
+			irRequire("alert", function() {
+				document.getElementById("direct-callback").innerHTML = "OK";
+			});
+			irRequire("declaredAfter", function() {
+				document.getElementById("after-callback").innerHTML = "OK";
+			});
+			irRequire("declaredAfter1s", function() {
+				document.getElementById("after1s-callback").innerHTML = "OK";
+			});
+			irRequire(["alert", "declaredAfter", "declaredAfter1s"], function() {
+				document.getElementById("multi-callback").innerHTML = "OK";
+			});
+			irRequire(["declaredAfter"], function() {
+				document.getElementById("trigger-callback").innerHTML = "OK";
+			}, null, 0);
+			declaredAfter = true;
+			irRequire.trigger();
+			setTimeout(function() {
+				declaredAfter1s = true
+			}, 1000);
+		</script>
+	</body>
+</html>
