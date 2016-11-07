@@ -25,8 +25,8 @@
 #	minify_main: SRCS := hello.js
 #	minify_main: OUTPUT := hello.min.js
 
-minify_irrequire: SRCS := srcs/irrequire.js
-minify_irrequire: OUTPUT := irrequire.min.js
+process_irrequire: INPUT := srcs/irrequire.js
+process_irrequire: OUTPUT := irrequire.min.js
 
 STAMP_TXT := irRequire $(OUTPUT) (`date +'%Y.%m.%d'`) by Blaise Lengrand
 MINIFY_JS_FLAGS := $(MINIFY_JS_FLAGS_HARDCORE)
