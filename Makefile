@@ -31,6 +31,7 @@ BUILDDIR ?= .make
 DISTDIR ?= dist
 INPUT ?= 
 OUTPUT ?= 
+MAKEFILE_ADDRESS := https://raw.githubusercontent.com/blaizard/Makefile/master/Makefile
 
 # Commands
 PRINT_CMD := printf
@@ -42,6 +43,7 @@ RMDIR_CMD := rm
 COPY_CMD := cp
 PACK_CMD := zip
 CD_CMD := cd
+WGET_CMD := wget
 
 # Flags
 PRINT_FLAGS ?=
@@ -53,6 +55,7 @@ RMDIR_FLAGS ?= -rfd
 COPY_FLAGS ?= -R
 PACK_FLAGS ?= -o -r
 CD_FLAGS :=
+WGET_FLAGS := --no-check-certificate -q
 
 # Available colors
 COLOR_END := $(shell printf "\033[0m")
@@ -110,6 +113,14 @@ define STAMP
 @$(call MSG,STAMP,GREEN,$1);
 $(AT)echo "$(strip $2)" > .temp && cat $1 >> .temp && mv .temp $1
 endef
+# Fetch the latest Makefile
+# $1 - Output
+define FETCH_UPDATE
+@$(call MSG,FETCH,GREEN,Makefile)
+$(AT)$(WGET_CMD) $(WGET_FLAGS) -O "$1" $(MAKEFILE_ADDRESS) || \
+$(call ERROR,Cannot fetch latest Makefile, please check your connection.) | :
+endef
+
 # Make calls
 define MAKE_RUN
 $(MAKE) --no-print-directory $2 $1
@@ -143,14 +154,15 @@ __CHECK_DEFINED = \
 define CHECK_TOOL
 @$(if $(shell command -v $1 2>/dev/null),$(call MSG,CHECK,CYAN,$1),$(call ERROR,$2))
 endef
-# Checks if a file exists
+# Checks if one or more file(s) exists
 # Params:
 #   1. File
 #   2. Message
 #   3. (optional) Action to perform if it does not exists
+FILE_NOT_EXIST=$(filter-out " ",$(strip $(foreach file,$1,$(if $(wildcard $(file)),, $(file)))))
 define CHECK_FILE
-@$(if $(shell test -s $1 && echo 1),,$(shell $(if $(value 3),$3)))
-@$(if $(shell test -s $1 && echo 1),$(call MSG,CHECK,CYAN,$1),$(call ERROR,$2))
+@$(if $(call FILE_NOT_EXIST,$1),$(shell $(if $(value 3),$3)),)
+@$(if $(call FILE_NOT_EXIST,$1),$(call ERROR,$(if $2,$2,The file(s) \"$(call FILE_NOT_EXIST,$1)\" do(es) not exist)),$(call MSG,CHECK,CYAN,$1))
 endef
 # Print a formated message
 # Params:
@@ -169,7 +181,7 @@ define MSG
 $(PRINT) "$(if $(COMPACT_MODE),$(CLEAR_LINE),)"$(call MSG_ONLY,$1,$2,$3,$4)"$(if $(COMPACT_MODE),,\n)"
 endef
 define MSG_ALWAYS
-$(PRINT) $(call MSG_ONLY,$1,$2,$3,$4)"\n"
+$(PRINT) "$(if $(COMPACT_MODE),$(CLEAR_LINE),)"$(call MSG_ONLY,$1,$2,$3,$4)"\n"
 endef
 # Print an error message and exit
 # Params:
@@ -184,10 +196,16 @@ endef
 define WARNING
 $(call MSG_ALWAYS,$(if $(COMPACT_MODE),\n,)WARNING,YELLOW,$(COLOR_YELLOW)$(strip $1)$(COLOR_END),1)
 endef
+# Info messages
+# Params:
+#   1. The information message
+define INFO
+$(call MSG_ALWAYS,INFO,LIGHT_BLUE,$1)
+endef
 # Added to a pipe, it will detect errors and warning and reformat the output
 define PIPE_FORMAT
-sed 's/^.*\(WARN\|WARNING\).*/$(COLOR_YELLOW)WARNING\t\t\0$(COLOR_END)/' \
-| sed 's/^.*\(ERROR\).*/$(COLOR_RED)ERROR\t\t\0$(COLOR_END)/' \
+sed 's/^.*\(WARN\).*/$(COLOR_YELLOW)WARNING\t\t\0$(COLOR_END)/i' \
+| sed 's/^\(.*ERROR\|.*EXPECTED\|[ \t]\+at\).*/$(COLOR_RED)ERROR\t\t\0$(COLOR_END)/i' \
 | xargs -0 -I{} printf "$(if $(COMPACT_MODE),\n,){}"
 endef
 
@@ -200,7 +218,7 @@ unexport RULES
 # Predefined rules
 all: $(BUILDDIR)/Makefile | $(ALL_RULES) mute-if-nop
 	@printf "$(if $(COMPACT_MODE),$(CLEAR_LINE),)"
-	@$(foreach output, $(OUTPUT_LIST), $(call MSG_ALWAYS,INFO,LIGHT_BLUE, \
+	@$(foreach output, $(OUTPUT_LIST), $(call INFO, \
 		$(output): $(shell du -bh $(DISTDIR)/$(output) | awk '{print $$1}')) && ) true
 build: all
 silent: VERBOSE := 0
@@ -212,7 +230,7 @@ mute-if-nop:
 
 # Trigger a clean if the makefiles have been altered
 $(BUILDDIR)/Makefile: $(ALL_MAKEFILES) | check_config
-	@$(call MAKE_RUN, clean)
+	+@$(call MAKE_RUN, clean)
 	@mkdir -p $(BUILDDIR) && touch $(BUILDDIR)/Makefile
 
 # Help message
@@ -257,15 +275,16 @@ check_config:
 	$(call CHECK_DEFINED, ALL_RULES, 'config.mk' contains no rules)
 # Check if JS minify tools are present
 check_minify_js:
-	$(call CHECK_TOOL, $(MINIFY_JS_CMD), "Please install: sudo apt-get install npm && sudo npm install --global uglifyjs && uglifyjs --version")
+	$(call CHECK_TOOL, $(MINIFY_JS_CMD),Please install: npm and uglifyjs packages)
 # Check if CSS minify tools are present
 check_minify_css:
-	$(call CHECK_TOOL, $(MINIFY_CSS_CMD), "Please install: sudo apt-get install npm && sudo npm install --global uglifycss && uglifycss --version")
+	$(call CHECK_TOOL, $(MINIFY_CSS_CMD),Please install: npm and uglifycss packages)
 # Check if the packaging tools are present
 check_pack:
 	$(call CHECK_TOOL, $(PACK_CMD), "")
 check_input:
 	$(call CHECK_DEFINED, INPUT)
+	$(call CHECK_FILE, $(INPUT))
 check_output:
 	$(call CHECK_DEFINED, OUTPUT)
 # Clean-up the created directoried
@@ -275,24 +294,34 @@ clean: | mute-if-nop
 
 # Clean and re-build the targets
 rebuild:
-	@$(call MAKE_RUN, clean)
-	@$(call MAKE_RUN, build)
+	+@$(call MAKE_RUN, clean)
+	+@$(call MAKE_RUN, build)
 
 # Re-build all what is inside the dist directory and make a package of it all
 release: check_pack | mute-if-nop
 	$(call RMDIR,$(DISTDIR)/)
-	@$(call MAKE_RUN, build)
+	+@$(call MAKE_RUN, build)
 	$(call PACK,$(DISTDIR),$(DISTDIR)/$(PACKAGE))
 	@printf "$(if $(COMPACT_MODE),$(CLEAR_LINE),)"
 
+# Automatically checks and update the Makefile with the latest version
+update:
+	$(call MKDIR, $(BUILDDIR)/)
+	$(call FETCH_UPDATE,$(BUILDDIR)/Makefile)
+	@cmp --silent Makefile $(BUILDDIR)/Makefile || ( \
+			$(call INFO,Makefile -> Makefile.old); \
+			cp Makefile Makefile.old; $(call INFO,Updating new Makefile); \
+			mv $(BUILDDIR)/Makefile Makefile )
+	@$(call INFO,Makefile is up-to-date)
+
 # ---- Automatic targets -----------------------------------------------------
 process%: check_input check_output
-	@$(call MAKE_NEXT, INPUT="$(INPUT)" OUTPUT="$(OUTPUT)")
+	+@$(call MAKE_NEXT, INPUT="$(INPUT)" OUTPUT="$(OUTPUT)")
 	@$(eval OUTPUT_LIST += "$(OUTPUT)")
 concat%: check_input check_output
-	@$(call MAKE_NEXT, INPUT="$(INPUT)" OUTPUT="$(OUTPUT)")
+	+@$(call MAKE_NEXT, INPUT="$(INPUT)" OUTPUT="$(OUTPUT)")
 copy%: check_input
-	@$(foreach file, $(INPUT), $(call MAKE_NEXT, INPUT="$(file)" OUTPUT="$(OUTPUT)") && ) true
+	+@$(foreach file, $(INPUT), $(call MAKE_NEXT, INPUT="$(file)" OUTPUT="$(OUTPUT)") && ) true
 
 # ---- Stamp ------------------------------------------------------------------
 ifeq ($(call IS_RULE, __stamp),)
@@ -302,7 +331,7 @@ ifeq ($(words $(OUTPUT)),1)
 ifeq ($(filter-out %.js %.css,$(OUTPUT)),)
 __stamp: check_output | mute-if-nop
 	$(call STAMP,$(OUTPUT),/* $(STAMP_TXT) */)
-	@$(call MAKE_NEXT, OUTPUT="$(OUTPUT)")
+	+@$(call MAKE_NEXT, OUTPUT="$(OUTPUT)")
 else
 __stamp:
 	@$(call WARNING, The filetype \"$(suffix $(OUTPUT))\" of \"$(OUTPUT)\" is not supported for stamping)
@@ -324,7 +353,7 @@ __process: $(DISTDIR)/$(OUTPUT) | mute-if-nop
 ifeq ($(filter-out %.js %.css,$(INPUT)),)
 
 $(DISTDIR)/$(OUTPUT): $(foreach file, $(filter %.js %.css,$(INPUT)), $(BUILDDIR)/$(basename $(file)).min$(suffix $(file)))
-	@$(call MAKE_NEXT_EXPLICIT, __concat, INPUT="$^" OUTPUT="$(OUTPUT)")
+	+@$(call MAKE_NEXT_EXPLICIT, __concat, INPUT="$^" OUTPUT="$(OUTPUT)")
 # js files
 $(BUILDDIR)/%.min.js: check_minify_js %.js
 	$(call MKDIR, `dirname $@`/)
@@ -349,7 +378,7 @@ __concat: $(DISTDIR)/$(OUTPUT) | mute-if-nop
 $(DISTDIR)/$(OUTPUT): $(INPUT)
 	$(call MKDIR, `dirname "$(DISTDIR)/$(OUTPUT)"`/)
 	$(call CONCAT, $^, "$(DISTDIR)/$(OUTPUT)")
-	@$(call MAKE_NEXT, OUTPUT="$(DISTDIR)/$(OUTPUT)")
+	+@$(call MAKE_NEXT, OUTPUT="$(DISTDIR)/$(OUTPUT)")
 
 endif
 
@@ -358,14 +387,15 @@ ifeq ($(call IS_RULE, __copy),)
 
 ifeq ($(words $(INPUT)),1)
 # Note: this target ensures that only 1 src and 1 dst are specified
-DIR_OUTPUT = $(abspath $(patsubst %, $(DISTDIR)/$(OUTPUT)/%, $(notdir %$(patsubst %/,%,$(abspath $(INPUT))))))
-FILES_OUTPUT=$(patsubst %, $(DIR_OUTPUT)/%, $(notdir $(shell find $(INPUT) -type f)))
-__copy: $(DIR_OUTPUT) | mute-if-nop
-$(DIR_OUTPUT):
+DIR_OUTPUT = $(DISTDIR)/$(if $(OUTPUT),$(OUTPUT)/,)$(notdir $(patsubst %/,%,$(abspath $(INPUT)))$(if $(wildcard $(INPUT)/.*),,/))$(if $(wildcard $(INPUT)/.*),/,)
+FILE_OUTPUT = $(DIR_OUTPUT)$(if $(wildcard $(INPUT)/.*),,$(notdir $(INPUT)))
+FILES_OUTPUT = $(patsubst %, $(DIR_OUTPUT)%, $(notdir $(shell find $(INPUT) -type f)))
+__copy: $(FILE_OUTPUT) | mute-if-nop
+$(FILE_OUTPUT):
 	$(call CHECK_DEFINED, INPUT)
 	$(call MKDIR, "$(DISTDIR)/$(OUTPUT)")
 	$(call COPY, $(INPUT), $(DIR_OUTPUT))
-	@$(foreach file, $(FILES_OUTPUT), $(call MAKE_NEXT, OUTPUT="$(file)") && ) true
+	+@$(foreach file, $(FILES_OUTPUT), $(call MAKE_NEXT, OUTPUT="$(file)") && ) true
 # Hack to ensure that the find command is not executed before the copy (due to parallelism)
 else
 __copy:
