@@ -2,6 +2,8 @@
 
 Call a function once the object(s), variable(s) or function(s) passed into argument are available.
 
+&#128279; https://www.blaizard.com/projects/irrequire
+
 ## Features
 
 * Manage object dependencies
