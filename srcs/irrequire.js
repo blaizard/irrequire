@@ -51,7 +51,7 @@
 						elt.src = f.map[name];
 						elt.type = "text/javascript";
 						elt.onerror = function() {
-							irRequire.e("load", elt.src);
+							irRequire.e("cannot load " + elt.src);
 						};
 						document.getElementsByTagName("head")[0].appendChild(elt);
 						// Remove the entry to make sure we load it only once
@@ -87,7 +87,7 @@
 				// Else keep the callback registered but do not check it anymore
 				// It can be done only manually
 				else {
-					irRequire.e("timeout", functionName);
+					irRequire.e(functionName.join() + " timed-out");
 				}
 			}
 		}
@@ -99,7 +99,7 @@
 		n.irRequire.map = {};
 
 		// Error handler
-		n.irRequire.e = function() {};
+		n.irRequire.e = alert;
 
 		/**
 		 * \brief Trigger pending requires. This function is synchronous and 
