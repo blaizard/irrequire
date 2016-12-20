@@ -11,6 +11,11 @@
 		<tr><td>Trigger</td><td id="trigger-callback"></td></tr>
 		</table>
 		<script>
+
+			irRequire.e = function(msg) {
+				alert(msg);
+			};
+
 			irRequire("alert", function() {
 				document.getElementById("direct-callback").innerHTML = "OK";
 			});
@@ -31,6 +36,21 @@
 			setTimeout(function() {
 				declaredAfter1s = true
 			}, 1000);
+		</script>
+
+		<h2>Using irRequire.map</h2>
+		<table>
+		<tr><td>Load dummy.js</td><td id="maptest"></td></tr>
+		</table>
+
+		<script>
+			irRequire.map = {
+				"dummyLoaded": "dummy.js"
+			}
+
+			irRequire("dummyLoaded", function() {
+				document.getElementById("maptest").innerHTML = "OK";
+			});
 		</script>
 	</body>
 </html>

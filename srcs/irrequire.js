@@ -31,20 +31,36 @@
 			if (typeof functionName === "string") {
 				functionName = [functionName];
 			}
+
 			// Check if function is ready
 			var ready = 1;
-			try {
-				for (var i in functionName) {
-					// If the function is not ready yet
-					if (typeof(eval(functionName[i])) === "undefined") {
-						ready = 0;
-						break;
+			for (var i in functionName) {
+				var name = functionName[i];
+				try {
+					// If the function is not ready
+					if (typeof(eval(name)) === "undefined") {
+						throw 1;
 					}
 				}
+				catch (err) {
+					ready = 0;
+					// If the file is not loaded yet
+					if (f.map[name]) {
+						// Load the ressource
+						var elt = document.createElement("script");
+						elt.src = f.map[name];
+						elt.type = "text/javascript";
+						elt.onerror = function() {
+							irRequire.e("load", elt.src);
+						};
+						document.getElementsByTagName("head")[0].appendChild(elt);
+						// Remove the entry to make sure we load it only once
+						delete f.map[name];
+					}
+					break;
+				}
 			}
-			catch(err) {
-				ready = 0;
-			}
+
 			if (ready) {
 				if (id >= 0) {
 					clearTimeout(f.r[id][4]);
@@ -57,6 +73,10 @@
 				if (id < 0) {
 					f.r.push([functionName, callback, args, timeout]);
 					id = f.r.length - 1;
+					// Do not throw an error if timeout is initally set to 0
+					if (timeout <= 0) {
+						return;
+					}
 				}
 				// If the timeout is not over contiue
 				if (timeout > 0) {
@@ -64,16 +84,22 @@
 						f(id);
 					}, 100);
 				}
+				// Else keep the callback registered but do not check it anymore
+				// It can be done only manually
+				else {
+					irRequire.e("timeout", functionName);
+				}
 			}
-			// Else keep the callback registered but do not check it anymore
-			// It can be done only manually
-		//	else {
-		//		 console.log("irRequire timed out");
-		//	}
 		}
 
 		// Table that will contain the records
 		n.irRequire.r = [];
+
+		// Map object names with their urls
+		n.irRequire.map = {};
+
+		// Error handler
+		n.irRequire.e = function() {};
 
 		/**
 		 * \brief Trigger pending requires. This function is synchronous and 
