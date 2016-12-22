@@ -25,11 +25,19 @@ To set-up the reference <-> url map
 ```javascript
 // Will load the jquery file and call the callback once "jQuery" becomes a recognized object
 irRequire.map = {
-	"jQuery": "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"
+	"jQuery": "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js",
+	"$().accordion": ["https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css", "https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"]
 };
 irRequire(["jQuery"], function() {
 	alert("ready!");
 });
+```
+
+To redirect the error output
+```javascript
+irRequire.e = function(message) {
+	console.error(message);
+};
 ```
 
 <a name="singleton">(1)</a> The script can be included multiple times but only one occurence will be running.<br/>

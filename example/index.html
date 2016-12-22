@@ -41,15 +41,24 @@
 		<h2>Using irRequire.map</h2>
 		<table>
 		<tr><td>Load dummy.js</td><td id="maptest"></td></tr>
+		<tr><td>Load multi dummy*.js</td><td id="maptest2"></td></tr>
+		<tr><td>Load dummy.css</td><td id="maptest3"></td></tr>
 		</table>
 
 		<script>
 			irRequire.map = {
-				"dummyLoaded": "dummy.js"
+				"dummyLoaded": "dummy1.js",
+				"dummyMulti": ["dummy2.js", "dummy3.js"],
+				"dummyMulti2": ["dummy3.js", "dummy.css"]
 			}
-
 			irRequire("dummyLoaded", function() {
 				document.getElementById("maptest").innerHTML = "OK";
+			});
+			irRequire("dummyMulti", function() {
+				document.getElementById("maptest2").innerHTML = "OK";
+			});
+			irRequire("dummyMulti2", function() {
+				document.getElementById("maptest3").innerHTML = "OK";
 			});
 		</script>
 	</body>

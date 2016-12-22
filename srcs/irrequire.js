@@ -44,19 +44,31 @@
 				}
 				catch (err) {
 					ready = 0;
+					var urlList = f.map[name] || [];
+					urlList = (urlList instanceof Array) ? urlList : [urlList];
 					// If the file is not loaded yet
-					if (f.map[name]) {
-						// Load the ressource
-						var elt = document.createElement("script");
-						elt.src = f.map[name];
-						elt.type = "text/javascript";
+					while (urlList.length) {
+						var url = urlList.pop();
+						// Load CSS ressource
+						var elt;
+						if (url.search(/\.css$/i) >= 0) {
+							elt = document.createElement("link");
+							elt.href = url;
+							elt.rel = "stylesheet";
+							elt.type = "text/css";
+						}
+						// Else load javascript
+						else {
+							elt = document.createElement("script");
+							elt.src = url;
+							elt.type = "text/javascript";
+						}
 						elt.onerror = function() {
-							irRequire.e("cannot load " + elt.src);
+							irRequire.e("cannot load " + (elt.src || elt.href));
 						};
 						document.getElementsByTagName("head")[0].appendChild(elt);
-						// Remove the entry to make sure we load it only once
-						delete f.map[name];
 					}
+					delete f.map[name];
 					break;
 				}
 			}

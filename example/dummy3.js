@@ -1,0 +1,1 @@
+var dummyMulti2 = 1;
