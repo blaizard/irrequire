@@ -1,0 +1,13 @@
+<h2>Multiple dependency</h2>
+<p>The callback depends on 2 independant variables that are created later.</p>
+<code>2 + 3 = <span id="multiple"></span></code>
+<script>
+	irRequire(["multipleVariable1", "multipleVariable2"], function() {
+		document.getElementById("multiple").innerHTML = multipleVariable1 + multipleVariable2;
+	});
+	// Create the 2 variables with some delay
+	multipleVariable1 = 2;
+	setTimeout(function() {
+		multipleVariable2 = 3;
+	}, 500);
+</script>

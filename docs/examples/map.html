@@ -1,0 +1,22 @@
+<h2>Mapping</h2>
+<p>If an object depends on external ressources (javascript files), it can be defined
+with the <code>irRequire.map</code> object. Each keys of this object corresponds to
+the name of the object and the value can either a string or an array of string containing
+the files to be loaded.</p>
+<code>jQuery: <span id="mappingJquery"></span></code>
+<code>Tippy.js: <span id="mappingtippy" title="jQuery and Tippy.js are loaded!"></span></code>
+<script>
+	irRequire.map = {
+		"jQuery": "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js",
+		"tippy": ["https://unpkg.com/tippy.js/dist/tippy.css", "https://unpkg.com/tippy.js/dist/tippy.js"]
+	}
+	// Load the jQuery library and use it
+	irRequire("jQuery", function() {
+		$("#mappingJquery").html("&#10003;");
+	});
+	// Load multiple files
+	irRequire(["tippy", "jQuery"], function() {
+		$("#mappingtippy").text("Over me!");
+		tippy("#mappingtippy");
+	});
+</script>
