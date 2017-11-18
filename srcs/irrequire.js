@@ -49,6 +49,13 @@
 					// If the file is not loaded yet
 					while (urlList.length) {
 						var url = urlList.pop();
+						// Handle non urls
+						if (f.map[url]) {
+							irRequire(url, function() {
+								irRequire(functionName, callback, args, timeout);
+							});
+							return;
+						}
 						// Load CSS ressource
 						var elt;
 						if (url.search(/\.css$/i) >= 0) {
