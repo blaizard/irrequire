@@ -41,21 +41,24 @@
 					if (typeof(eval(name)) === "undefined") {
 						throw 1;
 					}
+					n.irRequire.h(name);
 				}
 				catch (err) {
 					ready = 0;
 					var urlList = f.map[name] || [];
-					urlList = (urlList instanceof Array) ? urlList : [urlList];
+					if (!(urlList instanceof Array)) {
+						urlList = [urlList];
+						f.map[name] = [];
+					}
 					// If the file is not loaded yet
 					while (urlList.length) {
-						var url = urlList.pop();
-						// Handle non urls
-						if (f.map[url]) {
-							irRequire(url, function() {
+						var url = urlList.shift();
+						if (f.map.hasOwnProperty(url)) {
+							return irRequire(url, function() {
 								irRequire(functionName, callback, args, timeout);
-							});
-							return;
+							}, args, timeout);
 						}
+						n.irRequire.h(name, url);
 						// Load CSS ressource
 						var elt;
 						if (url.search(/\.css$/i) >= 0) {
@@ -75,8 +78,8 @@
 						};
 						document.getElementsByTagName("head")[0].appendChild(elt);
 					}
-					delete f.map[name];
-					break;
+				//	delete f.map[name];
+				//	break;
 				}
 			}
 
@@ -125,10 +128,15 @@
 		n.irRequire.e = console.error;
 
 		/**
+		 * Hook for loading feedback
+		 */
+		n.irRequire.h = function(){};
+
+		/**
 		 * \brief Trigger pending requires. This function is synchronous and 
 		 * can be therefore executed once entering or initializing a module.
 		 */
-		n.irRequire.trigger = function () {
+		n.irRequire.trigger = function() {
 			irRequire.r.forEach(function(item, id) {
 				if (item) {
 					irRequire(id);
