@@ -226,7 +226,7 @@ DocContext.prototype.load = function (index) {
 						callNext();
 						break;
 					case "markdown":
-						irRequire(["showdown"], function() {
+						irRequire(["showdown"]).then(() => {
 							var converter = new showdown.Converter();
 							element.innerHTML = converter.makeHtml(data);
 							callNext();
