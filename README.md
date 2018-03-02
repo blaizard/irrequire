@@ -5,6 +5,10 @@ References can also be mapped to a javascript file URL which will be loaded auto
 
 &#128279; [https://blaizard.github.io/irrequire](https://blaizard.github.io/irrequire)
 
+## Download
+
+* [irrequire.min.js](https://blaizard.github.io/irrequire/dist/irrequire.min.js)
+
 ## Features
 
 * Manage object dependencies
