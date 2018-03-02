@@ -11,11 +11,11 @@ the files to be loaded.</p>
 		"tippy": ["https://unpkg.com/tippy.js/dist/tippy.css", "https://unpkg.com/tippy.js/dist/tippy.js"]
 	}
 	// Load the jQuery library and use it
-	irRequire("jQuery", function() {
+	irRequire("jQuery").then(() => {
 		$("#mappingJquery").html("&#10003;");
 	});
 	// Load multiple files
-	irRequire(["tippy", "jQuery"], function() {
+	irRequire(["tippy", "jQuery"]).then(() => {
 		$("#mappingtippy").text("Over me!");
 		tippy("#mappingtippy");
 	});

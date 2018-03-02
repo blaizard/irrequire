@@ -2,7 +2,7 @@
 <p>Eventhough the variable is decalred after the function, the assignment is done correctly.</p>
 <code>variable = <span id="simple"></span></code>
 <script>
-	irRequire("simpleVariable", function() {
+	irRequire("simpleVariable").then(() => {
 		document.getElementById("simple").innerHTML = simpleVariable;
 	});
 	simpleVariable = "Hello World";
