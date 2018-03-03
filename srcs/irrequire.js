@@ -55,6 +55,9 @@
 						// Load CSS ressource
 						var elt;
 						if (url.search(/\.css$/i) >= 0) {
+							if (document.querySelector('link[href="' + url + '"]')) {
+								continue;
+							}
 							elt = document.createElement("link");
 							elt.href = url;
 							elt.rel = "stylesheet";
@@ -62,6 +65,10 @@
 						}
 						// Else load javascript
 						else {
+							// If the script is already loaded, ignore
+							if (document.querySelector('script[src="' + url + '"]')) {
+								continue;
+							}
 							elt = document.createElement("script");
 							elt.src = url;
 							elt.type = "text/javascript";
