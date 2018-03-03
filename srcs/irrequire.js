@@ -52,27 +52,20 @@
 							});
 						}
 						n.irRequire.h(name, url);
+
 						// Load CSS ressource
-						var elt;
-						if (url.search(/\.css$/i) >= 0) {
-							if (document.querySelector('link[href="' + url + '"]')) {
-								continue;
-							}
-							elt = document.createElement("link");
-							elt.href = url;
-							elt.rel = "stylesheet";
-							elt.type = "text/css";
+						var desc = (url.search(/\.css$/i) >= 0) ? ["link", "href", {rel: "stylesheet", type: "text/css"}]
+								: ["script", "src", {type: "text/javascript"}];
+
+						// If the element already exists, ignore
+						if (document.querySelector(desc[0] + '[' + desc[1] + '="' + url + '"]')) {
+							continue;
 						}
-						// Else load javascript
-						else {
-							// If the script is already loaded, ignore
-							if (document.querySelector('script[src="' + url + '"]')) {
-								continue;
-							}
-							elt = document.createElement("script");
-							elt.src = url;
-							elt.type = "text/javascript";
-						}
+
+						var elt = document.createElement(desc[0]);
+						elt[desc[1]] = url;
+						Object.assign(elt, desc[2]);
+
 						elt.onerror = function () {
 							reject(new Error("cannot load " + (elt.src || elt.href)));
 						};
