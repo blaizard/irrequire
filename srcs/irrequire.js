@@ -57,19 +57,18 @@
 						var desc = (url.search(/\.css$/i) >= 0) ? ["link", "href", {rel: "stylesheet", type: "text/css"}]
 								: ["script", "src", {type: "text/javascript"}];
 
-						// If the element already exists, ignore
-						if (document.querySelector(desc[0] + '[' + desc[1] + '="' + url + '"]')) {
-							continue;
+						// Create the new element only if it does not exists
+						if (!document.querySelector(desc[0] + '[' + desc[1] + '="' + url + '"]')) {
+
+							var elt = document.createElement(desc[0]);
+							elt[desc[1]] = url;
+							Object.assign(elt, desc[2]);
+
+							elt.onerror = function () {
+								reject(new Error("cannot load " + (elt.src || elt.href)));
+							};
+							document.getElementsByTagName("head")[0].appendChild(elt);
 						}
-
-						var elt = document.createElement(desc[0]);
-						elt[desc[1]] = url;
-						Object.assign(elt, desc[2]);
-
-						elt.onerror = function () {
-							reject(new Error("cannot load " + (elt.src || elt.href)));
-						};
-						document.getElementsByTagName("head")[0].appendChild(elt);
 					}
 				}
 			});
