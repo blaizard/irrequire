@@ -35,14 +35,17 @@
 				}
 				catch (err) {
 					ready = 0;
-					var urlList = irRequire.map[name] || [];
-					if (!(urlList instanceof Array)) {
-						urlList = [urlList];
-						irRequire.map[name] = [];
+
+					// Make sure the map is a list, otherwise force it
+					if (!(irRequire.map[name] instanceof Array)) {
+						irRequire.map[name] = [irRequire.map[name]];
 					}
+
 					// If the file is not loaded yet
-					while (urlList.length) {
-						var url = urlList.shift();
+					while (irRequire.map[name].length) {
+						var url = irRequire.map[name].shift();
+
+						// If the name is part of the global map, load it
 						if (irRequire.map[url]) {
 							return irRequire(url, timeout).then(function () {
 								irRequire.a(functionName, resolve, reject, timeout);
