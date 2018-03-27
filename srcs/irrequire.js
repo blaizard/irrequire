@@ -38,7 +38,7 @@
 
 					// Make sure the map is a list, otherwise force it
 					if (!(irRequire.map[name] instanceof Array)) {
-						irRequire.map[name] = [irRequire.map[name]];
+						irRequire.map[name] = (irRequire.map[name]) ? [irRequire.map[name]] : [];
 					}
 
 					// If the file is not loaded yet
