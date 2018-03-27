@@ -11,8 +11,8 @@
 		 */
 		n.irRequire = function (functionName, timeout) {
 			return new Promise(function (resolve, reject) {
-				// Wait for maximum 5 seconds by default
-				n.irRequire.a(functionName, resolve, reject, timeout || 5000);
+				// Wait for maximum 30 seconds by default
+				n.irRequire.a(functionName, resolve, reject, timeout || 30000);
 			});
 		}
 
@@ -24,7 +24,7 @@
 			}
 
 			// Check if function is ready
-			var ready = 1;
+			var ready = 1, poll = 1;
 			functionName.forEach(function (name) {
 				try {
 					// If the function is not ready
@@ -47,6 +47,7 @@
 
 						// If the name is part of the global map, load it
 						if (irRequire.map[url]) {
+							poll = 0;
 							return irRequire(url, timeout).then(function () {
 								irRequire.a(functionName, resolve, reject, timeout);
 							});
@@ -73,16 +74,19 @@
 				}
 			});
 
-			if (ready) {
-				resolve(1);
-			}
-			else if (timeout > 0) {
-				setTimeout(function () {
-					irRequire.a(functionName, resolve, reject, timeout - 100);
-				}, 100);
-			}
-			else {
-				reject(new Error(functionName.join() + " timed-out"));
+			// If polling is on
+			if (poll) {
+				if (ready) {
+					resolve(1);
+				}
+				else if (timeout > 0) {
+					setTimeout(function () {
+						irRequire.a(functionName, resolve, reject, timeout - 100);
+					}, 100);
+				}
+				else {
+					reject(new Error(functionName.join() + " timed-out"));
+				}
 			}
 		};
 
