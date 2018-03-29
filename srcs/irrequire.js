@@ -19,7 +19,7 @@
 		n.irRequire.a = function (functionName, resolve, reject, timeout) {
 
 			// If this is a string, convert it into an array to make the code compatible
-			if (typeof functionName === "string") {
+			if (typeof functionName == "string") {
 				functionName = [functionName];
 			}
 
@@ -35,18 +35,19 @@
 				}
 				catch (err) {
 					ready = 0;
+					var m = irRequire.map;
 
 					// Make sure the map is a list, otherwise force it
-					if (!(irRequire.map[name] instanceof Array)) {
-						irRequire.map[name] = (irRequire.map[name]) ? [irRequire.map[name]] : [];
+					if (!(m[name] instanceof Array)) {
+						m[name] = (m[name]) ? [m[name]] : [];
 					}
 
 					// If the file is not loaded yet
-					while (irRequire.map[name].length) {
-						var url = irRequire.map[name].shift();
+					while (m[name].length) {
+						var url = m[name].shift();
 
 						// If the name is part of the global map, load it
-						if (irRequire.map[url]) {
+						if (m[url]) {
 							poll = 0;
 							return irRequire(url, timeout).then(function () {
 								irRequire.a(functionName, resolve, reject, timeout);
@@ -56,30 +57,31 @@
 
 						// Load CSS ressource
 						var desc = (url.search(/\.css$/i) >= 0) ? ["link", "href", {rel: "stylesheet", type: "text/css"}]
-								: ["script", "src", {type: "text/javascript"}];
+								: ["script", "src", {type: "text/javascript", async: true}];
 
 						// Create the new element only if it does not exists
-						if (!document.querySelector(desc[0] + '[' + desc[1] + '="' + url + '"]')) {
+						var d = document;
+						if (!d.querySelector(desc[0] + '[' + desc[1] + '="' + url + '"]')) {
 
-							var elt = document.createElement(desc[0]);
+							var elt = d.createElement(desc[0]);
 							elt[desc[1]] = url;
 							Object.assign(elt, desc[2]);
 
 							elt.onerror = function () {
 								reject(new Error("cannot load " + (elt.src || elt.href)));
 							};
-							document.getElementsByTagName("head")[0].appendChild(elt);
+							d.getElementsByTagName("head")[0].appendChild(elt);
 						}
 					}
 				}
 			});
 
-			// If polling is on
-			if (poll) {
-				if (ready) {
-					resolve(1);
-				}
-				else if (timeout > 0) {
+			if (ready) {
+				var r = functionName.map(function(name) { return eval(name); });
+				resolve((r.length == 1) ? r[0] : r);
+			}
+			else if (poll) {
+				if (timeout > 0) {
 					setTimeout(function () {
 						irRequire.a(functionName, resolve, reject, timeout - 100);
 					}, 100);

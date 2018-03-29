@@ -1,0 +1,15 @@
+<h2>Nested</h2>
+<p>This example showcases how nested dependencies are resolved.</p>
+<code>a.b.c.d: <span id="nestedId"></span></code>
+<script>
+	irRequire.map = {
+		"a": ["examples/nested/test1.js"],
+		"a.b": ["a", "examples/nested/test2.js"],
+		"a.b.c": ["a.b", "examples/nested/test3.js"], //< This dependency has a 500ms timeout
+		"a.b.c.d": ["a.b.c", "examples/nested/test4.js"]
+	};
+
+	irRequire("a.b.c.d").then(function(result) {
+		document.getElementById("nestedId").innerHTML = result;
+	});
+</script>

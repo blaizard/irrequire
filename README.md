@@ -15,6 +15,7 @@ References can also be mapped to a javascript file URL which will be loaded auto
 * Small-size
 * Singleton-like [(1)](#singleton)
 * Prevent from loading twice the same file
+* Promise resolve into the object requested
 
 ## Getting Started
 
@@ -33,9 +34,26 @@ irRequire.map = {
 	"jQuery": "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js",
 	"$().accordion": ["jQuery", "https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css", "https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"]
 };
-irRequire(["jQuery"]).then(() => {
+irRequire(["$().accordion"]).then(() => {
 	alert("ready!");
 });
 ```
+
+Using the keyword await inside an asynchronous function, you can use it as follow:
+```javascript
+// Setup the map to tell where is located the jQuery module
+irRequire.map = {
+	"jQuery": "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"
+};
+
+// Fetch and load the jQuery module
+var jq = await irRequire("jQuery");
+
+// For example to get info on your IP address
+jq.getJSON("http://ipinfo.io", function(data) {
+	alert(JSON.stringify(data));
+});
+```
+
 
 <a name="singleton">(1)</a> The script can be included multiple times but only one occurence will be running.<br/>

@@ -1,7 +1,7 @@
 {
 	"pages" : [
 		["Description", "readme"],
-		["Examples", "code", ["examples/single.html", "examples/multiple.html", "examples/map.html"]],
+		["Examples", "code", ["examples/single.html", "examples/multiple.html", "examples/map.html", "examples/nested.html"]],
 		["License", "license"]
 	],
 	"title": "irRequire",
