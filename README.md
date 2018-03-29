@@ -14,7 +14,7 @@ References can also be mapped to a javascript file URL which will be loaded auto
 * Manage object dependencies
 * Small-size
 * Singleton-like [(1)](#singleton)
-* Prevent double loading of the same file
+* Prevent from loading twice the same file
 
 ## Getting Started
 
